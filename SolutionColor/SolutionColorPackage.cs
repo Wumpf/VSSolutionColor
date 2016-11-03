@@ -1,10 +1,4 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="testcommandPackage.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
-using System;
+﻿using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -38,19 +32,18 @@ namespace SolutionColor
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [Guid(testcommandPackage.PackageGuidString)]
+    [Guid(SolutionColorPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class testcommandPackage : Package
+    public sealed class SolutionColorPackage : Package
     {
-        /// <summary>
-        /// testcommandPackage GUID string.
-        /// </summary>
         public const string PackageGuidString = "8fa74b3d-8744-465c-b06e-a719e1d63ddf";
 
+        public static readonly Guid ToolbarCommandSetGuid = new Guid("00d80876-3407-4666-bf62-7262028ea83b");
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="testcommand"/> class.
+        /// Initializes a new instance of the <see cref="PickColorCommand"/> class.
         /// </summary>
-        public testcommandPackage()
+        public SolutionColorPackage()
         {
             // Inside this method you can place any initialization code that does not require
             // any Visual Studio service because at this point the package object is created but
@@ -66,7 +59,8 @@ namespace SolutionColor
         /// </summary>
         protected override void Initialize()
         {
-            testcommand.Initialize(this);
+            PickColorCommand.Initialize(this);
+            ResetColorCommand.Initialize(this);
             base.Initialize();
         }
 

@@ -51,10 +51,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Output.cs" />
+    <Compile Include="ResetColorCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="testcommand.cs" />
-    <Compile Include="testcommandPackage.cs" />
+    <Compile Include="PickColorCommand.cs" />
+    <Compile Include="SolutionColorPackage.cs" />
     <Compile Include="VSUtils.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -66,10 +66,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
-    <Content Include="Resources\testcommand.png" />
-    <Content Include="Resources\testcommandPackage.ico" />
-    <Content Include="stylesheet.css" />
-    <VSCTCompile Include="testcommandPackage.vsct">
+    <Content Include="Resources\toolbarIcons.png" />
+    <Content Include="Resources\packageIcon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <VSCTCompile Include="SolutionColorPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
   </ItemGroup>
@@ -184,6 +186,7 @@
     <EmbeddedResource Include="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

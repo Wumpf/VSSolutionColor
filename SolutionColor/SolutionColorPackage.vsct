@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
+  <Extern href="stdidcmd.h"/>
+
+  <!--This header contains the command ids for the menus provided by the shell. -->
+  <Extern href="vsshlids.h"/>
+
+  <!--The Commands section is where commands, menus, and menu groups are defined.
+      This section uses a Guid to identify the package that provides the command defined inside it. -->
+  <Commands package="SolutionColorPackage">
+    
+    <Menus>
+      <Menu guid="SolutionColorCommandPackageCmdSet" id="Toolbar" type="Toolbar" >
+        <CommandFlag>DefaultDocked</CommandFlag>
+        <Strings>
+          <ButtonText>Solution Color Toolbar</ButtonText>
+          <CommandName>Solution Color Toolbar</CommandName>
+        </Strings>
+      </Menu>
+    </Menus>
+
+    <Groups>
+      <Group guid="SolutionColorCommandPackageCmdSet" id="ToolbarGroup" priority="0x0000">
+        <Parent guid="SolutionColorCommandPackageCmdSet" id="Toolbar"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="SolutionColorCommandPackageCmdSet" id="PickColorButtonId" priority="0x0100" type="Button">
+        <Parent guid= "SolutionColorCommandPackageCmdSet" id="ToolbarGroup" />
+        <Icon guid="guidImages" id="bmpPickColor" />
+        <Strings>
+          <ButtonText>Pick Color for the Current Solution.</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="SolutionColorCommandPackageCmdSet" id="ResetColorButtonId" priority="0x0101" type="Button">
+        <Parent guid= "SolutionColorCommandPackageCmdSet" id="ToolbarGroup" />
+        <Icon guid="guidImages" id="bmpResetColor" />
+        <Strings>
+          <ButtonText>Reset Color for this Solution to Default.</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+    
+    <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
+    <Bitmaps>
+      <!--  The bitmap id is defined in a way that is a little bit different from the others:
+            the declaration starts with a guid for the bitmap strip, then there is the resource id of the
+            bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
+            inside a button definition. An important aspect of this declaration is that the element id
+            must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
+      <Bitmap guid="guidImages" href="Resources\toolbarIcons.png" usedList="bmpPickColor, bmpResetColor"/>
+    </Bitmaps>
+  </Commands>
+
+  <Symbols>
+
+    <!-- This is the package guid. -->
+    <GuidSymbol name="SolutionColorPackage" value="{8fa74b3d-8744-465c-b06e-a719e1d63ddf}" />
+
+    <!-- This is the guid used to group the menu commands together -->
+    <GuidSymbol name="SolutionColorCommandPackageCmdSet" value="{00d80876-3407-4666-bf62-7262028ea83b}">
+      <IDSymbol name="Toolbar" value="0x1000" />
+      <IDSymbol name="ToolbarGroup" value="0x1050" />
+      <IDSymbol name="PickColorButtonId" value="0x0100" />
+      <IDSymbol name="ResetColorButtonId" value="0x0101" />
+    </GuidSymbol>
+
+    <GuidSymbol name="guidImages" value="{54695ca7-8391-4376-99cf-e32094535e79}" >
+      <IDSymbol name="bmpPickColor" value="1" />
+      <IDSymbol name="bmpResetColor" value="2" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>
