@@ -28,6 +28,7 @@ namespace SolutionColor
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(SolutionColorPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    [ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.NoSolution_string)]
     public sealed class SolutionColorPackage : Package
     {
         public const string PackageGuidString = "8fa74b3d-8744-465c-b06e-a719e1d63ddf";
