@@ -67,6 +67,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="index.html" />
+    <Content Include="license.txt">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\toolbarIcons.png" />
     <Content Include="Resources\packageIcon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
