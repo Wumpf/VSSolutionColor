@@ -1,13 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Design;
-using System.Globalization;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using System.Runtime.InteropServices;
-using System.Windows;
-using System.Linq;
-using System.Windows.Interop;
-using System.Windows.Media;
+using System.Windows.Forms;
 
 namespace SolutionColor
 {
@@ -56,7 +50,12 @@ namespace SolutionColor
 
         private void Execute(object sender, EventArgs e)
         {
-            VSUtils.SetTitleBarColor("#00ff00");
+            var dialog = new ColorDialog();
+            dialog.AllowFullOpen = true;
+            dialog.Color = VSUtils.TryGetTitleBarColor();
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+                VSUtils.SetTitleBarColor(dialog.Color);
         }
     }
 }

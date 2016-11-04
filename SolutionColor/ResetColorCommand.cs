@@ -56,7 +56,7 @@ namespace SolutionColor
 
         private void Execute(object sender, EventArgs e)
         {
-            VSUtils.SetTitleBarColor("#ffff00");
+            VSUtils.ResetTitleBarColor();
         }
     }
 }
