@@ -23,8 +23,8 @@
     <ProjectGuid>{43D6AD8C-3B27-4B6F-AF3F-4C9B9E70DDAA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>solutioncolor</RootNamespace>
-    <AssemblyName>solutioncolor</AssemblyName>
+    <RootNamespace>SolutionColor</RootNamespace>
+    <AssemblyName>SolutionColor</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -54,6 +54,7 @@
     <Compile Include="ResetColorCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PickColorCommand.cs" />
+    <Compile Include="SettingsStore.cs" />
     <Compile Include="SolutionColorPackage.cs" />
     <Compile Include="VSUtils.cs" />
   </ItemGroup>

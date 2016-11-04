@@ -9,13 +9,16 @@ namespace SolutionColor
     {
         public const int CommandId = 0x0100;
 
+        private SolutionColorPackage package;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PickColorCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private PickColorCommand(Package package)
+        private PickColorCommand(SolutionColorPackage package)
         {
+            this.package = package;
             if (package == null)
             {
                 throw new ArgumentNullException("package");
@@ -43,7 +46,7 @@ namespace SolutionColor
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package)
+        public static void Initialize(SolutionColorPackage package)
         {
             Instance = new PickColorCommand(package);
         }
@@ -55,7 +58,10 @@ namespace SolutionColor
             dialog.Color = VSUtils.TryGetTitleBarColor();
 
             if (dialog.ShowDialog() == DialogResult.OK)
+            {
                 VSUtils.SetTitleBarColor(dialog.Color);
+                package.Settings.SaveOrOverwriteSolutionColor(VSUtils.GetCurrentSolutionPath(), dialog.Color);
+            }
         }
     }
 }

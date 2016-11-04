@@ -21,6 +21,11 @@ namespace SolutionColor
             return dte;
         }
 
+        public static string GetCurrentSolutionPath()
+        {
+            return GetDTE().Solution.FileName;
+        }
+
         [DllImport("user32.dll")]
         private static extern IntPtr GetActiveWindow();
 

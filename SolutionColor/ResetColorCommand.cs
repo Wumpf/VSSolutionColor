@@ -15,13 +15,16 @@ namespace SolutionColor
     {
         public const int CommandId = 0x0101;
 
+        private SolutionColorPackage package;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ResetColorCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private ResetColorCommand(Package package)
+        private ResetColorCommand(SolutionColorPackage package)
         {
+            this.package = package;
             if (package == null)
             {
                 throw new ArgumentNullException("package");
@@ -49,7 +52,7 @@ namespace SolutionColor
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package)
+        public static void Initialize(SolutionColorPackage package)
         {
             Instance = new ResetColorCommand(package);
         }
@@ -57,6 +60,7 @@ namespace SolutionColor
         private void Execute(object sender, EventArgs e)
         {
             VSUtils.ResetTitleBarColor();
+            package.Settings.RemoveSolutionColorSetting(VSUtils.GetCurrentSolutionPath());
         }
     }
 }

@@ -1,14 +1,8 @@
 ﻿using System;
-using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.Win32;
+using EnvDTE;
 
 namespace SolutionColor
 {
@@ -40,6 +34,13 @@ namespace SolutionColor
 
         public static readonly Guid ToolbarCommandSetGuid = new Guid("00d80876-3407-4666-bf62-7262028ea83b");
 
+        public SolutionColorSettingStore Settings { get; private set; } = new SolutionColorSettingStore();
+
+        /// <summary>
+        /// Need to keep them alive!
+        /// </summary>
+        private SolutionEvents solutionEvents;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PickColorCommand"/> class.
         /// </summary>
@@ -61,7 +62,19 @@ namespace SolutionColor
         {
             PickColorCommand.Initialize(this);
             ResetColorCommand.Initialize(this);
+
+            solutionEvents = VSUtils.GetDTE().Events.SolutionEvents;
+            solutionEvents.Opened += SolutionOpened;
+
             base.Initialize();
+        }
+
+        private void SolutionOpened()
+        {
+            // Check if we already saved something for this solution.
+            System.Drawing.Color color;
+            if (Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out color))
+                VSUtils.SetTitleBarColor(color);
         }
 
         #endregion
