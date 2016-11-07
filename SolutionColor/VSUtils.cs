@@ -26,9 +26,6 @@ namespace SolutionColor
             return GetDTE().Solution.FileName;
         }
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetActiveWindow();
-
         private static DependencyObject cachedTitleBar = null;
         private static object defaultBackgroundValue = null;
         private const string ColorPropertyName = "Background";
@@ -37,12 +34,10 @@ namespace SolutionColor
         {
             if (cachedTitleBar == null)
             {
-                IntPtr active = GetActiveWindow();
-                var activeWindow = Application.Current.Windows.OfType<Window>()
-                    .SingleOrDefault(window => new WindowInteropHelper(window).Handle == active);
+                var mainWindow = Application.Current.MainWindow;
 
                 // Apply knowledge of basic Visual Studio 2015 window structure.
-                var windowContentPresenter = VisualTreeHelper.GetChild(activeWindow, 0);
+                var windowContentPresenter = VisualTreeHelper.GetChild(mainWindow, 0);
                 var rootGrid = VisualTreeHelper.GetChild(windowContentPresenter, 0);
 
                 cachedTitleBar = VisualTreeHelper.GetChild(rootGrid, 0);
