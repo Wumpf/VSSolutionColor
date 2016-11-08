@@ -15,8 +15,8 @@
       <Menu guid="SolutionColorCommandPackageCmdSet" id="Toolbar" type="Toolbar" >
         <CommandFlag>DefaultDocked</CommandFlag>
         <Strings>
-          <ButtonText>Solution Color Toolbar</ButtonText>
-          <CommandName>Solution Color Toolbar</CommandName>
+          <ButtonText>Solution Color</ButtonText>
+          <CommandName>Solution Color</CommandName>
         </Strings>
       </Menu>
     </Menus>

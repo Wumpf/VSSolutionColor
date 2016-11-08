@@ -58,7 +58,7 @@ namespace SolutionColor
                 if(titleBarTextBox != null)
                 {
                     float luminance = 0.299f * color.R + 0.587f * color.G + 0.114f * color.B;
-                    if(luminance > 0.5f)
+                    if(luminance > 128.0f)
                         titleBarTextBox.Foreground = new SolidColorBrush(Color.FromRgb(0,0,0));
                     else
                         titleBarTextBox.Foreground = new SolidColorBrush(Color.FromRgb(255, 255, 255));
