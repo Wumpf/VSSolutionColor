@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
+using System.Windows;
 
 namespace SolutionColor
 {
@@ -37,6 +38,8 @@ namespace SolutionColor
 
         public SolutionColorSettingStore Settings { get; private set; } = new SolutionColorSettingStore();
 
+        public TitleBarColorController TitleBarColorControl { get; private set; }
+
         /// <summary>
         /// Need to keep them alive!
         /// </summary>
@@ -61,6 +64,7 @@ namespace SolutionColor
         /// </summary>
         protected override void Initialize()
         {
+            TitleBarColorControl = new TitleBarColorController();
             PickColorCommand.Initialize(this);
             ResetColorCommand.Initialize(this);
 
@@ -75,7 +79,7 @@ namespace SolutionColor
             // Check if we already saved something for this solution.
             System.Drawing.Color color;
             if (Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out color))
-                VSUtils.SetTitleBarColor(color);
+                TitleBarColorControl.SetTitleBarColor(color);
         }
 
         #endregion

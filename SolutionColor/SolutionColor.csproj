@@ -55,6 +55,7 @@
     <Compile Include="PickColorCommand.cs" />
     <Compile Include="SettingsStore.cs" />
     <Compile Include="SolutionColorPackage.cs" />
+    <Compile Include="TitleBarColorController.cs" />
     <Compile Include="VSUtils.cs" />
   </ItemGroup>
   <ItemGroup>

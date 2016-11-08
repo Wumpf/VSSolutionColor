@@ -55,11 +55,11 @@ namespace SolutionColor
         {
             var dialog = new ColorDialog();
             dialog.AllowFullOpen = true;
-            dialog.Color = VSUtils.TryGetTitleBarColor();
+            dialog.Color = package.TitleBarColorControl.TryGetTitleBarColor();
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                VSUtils.SetTitleBarColor(dialog.Color);
+                package.TitleBarColorControl.SetTitleBarColor(dialog.Color);
                 package.Settings.SaveOrOverwriteSolutionColor(VSUtils.GetCurrentSolutionPath(), dialog.Color);
             }
         }
