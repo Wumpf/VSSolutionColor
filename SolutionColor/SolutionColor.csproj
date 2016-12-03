@@ -72,9 +72,12 @@
     <Content Include="license.txt">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Resources\toolbarIcons.png" />
-    <Content Include="Resources\packageIcon.ico">
+    <Content Include="Resources\icon.png">
+      <IncludeInVSIX>true</IncludeInVSIX>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\toolbarIcons.png" />
+    <Content Include="screenshot.png">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <VSCTCompile Include="SolutionColorPackage.vsct">

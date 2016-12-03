@@ -5,6 +5,8 @@
     <DisplayName>SolutionColor</DisplayName>
     <Description xml:space="preserve">Pick a different titlebar color depending on the current sln file you're working on.</Description>
     <License>license.txt</License>
+    <Icon>Resources\icon.png</Icon>
+    <PreviewImage>screenshot.png</PreviewImage>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0,16.0)" />
