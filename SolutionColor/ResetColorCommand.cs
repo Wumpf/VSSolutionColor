@@ -1,16 +1,12 @@
 ﻿using System;
 using System.ComponentModel.Design;
-using System.Globalization;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using System.Runtime.InteropServices;
-using System.Windows;
-using System.Linq;
-using System.Windows.Interop;
-using System.Windows.Media;
 
 namespace SolutionColor
 {
+    /// <summary>
+    /// Command to reset the title bar color.
+    /// </summary>
     internal sealed class ResetColorCommand
     {
         public const int CommandId = 0x0101;

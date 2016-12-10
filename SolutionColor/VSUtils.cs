@@ -1,14 +1,10 @@
 ﻿using Microsoft.VisualStudio.Shell;
-using System;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Interop;
-using System.Windows.Media;
 
 namespace SolutionColor
 {
+    /// <summary>
+    /// A few VS extension utils. Basically shortcuts to commonly functionallity.
+    /// </summary>
     internal static class VSUtils
     {
         public static EnvDTE80.DTE2 GetDTE()

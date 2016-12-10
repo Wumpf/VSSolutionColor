@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
-using System.Windows;
 
 namespace SolutionColor
 {

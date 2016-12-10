@@ -5,6 +5,9 @@ using System.Windows.Forms;
 
 namespace SolutionColor
 {
+    /// <summary>
+    /// Command to open color picker in order to choose a color for the titlebar.
+    /// </summary>
     internal sealed class PickColorCommand
     {
         public const int CommandId = 0x0100;

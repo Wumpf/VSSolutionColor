@@ -5,6 +5,9 @@ using System.Windows.Controls;
 
 namespace SolutionColor
 {
+    /// <summary>
+    /// All the important magic to manipulate the main window's title bar happens here.
+    /// </summary>
     public class TitleBarColorController
     {
         private DependencyObject titleBar = null;
@@ -16,8 +19,14 @@ namespace SolutionColor
 
         public TitleBarColorController()
         {
+            // Too early to gather widget pointers since window might not be up yet.
+            //UpdateWidgetPointer();
         }
 
+        /// <summary>
+        /// Uses knowledge of the VS window structure to retrieve pointers to the titlebar and its text element.
+        /// Don't call before the application window isn't up yet.
+        /// </summary>
         private void UpdateWidgetPointer()
         {
             if (titleBar != null && titleBarTextBox != null)
@@ -43,6 +52,10 @@ namespace SolutionColor
             catch  { }
         }
 
+        /// <summary>
+        /// Tries to set a given color to the titlebar. Will color the text either black or white dependingon the color's brightness.
+        /// Opens message box if something goes wrong.
+        /// </summary>
         public void SetTitleBarColor(System.Drawing.Color color)
         {
             UpdateWidgetPointer();
@@ -70,9 +83,13 @@ namespace SolutionColor
             }
         }
 
+        /// <summary>
+        /// Resets titlebar (and text) color to the default that was saved in the first successful UpdateWidgetPointer() call.
+        /// </summary>
         public void ResetTitleBarColor()
         {
-            UpdateWidgetPointer();
+            // If we don't have the widget pointers yet, we also don't have a color to reset to.
+            //UpdateWidgetPointer();
 
             try
             {
@@ -93,6 +110,9 @@ namespace SolutionColor
             }
         }
 
+        /// <summary>
+        /// Tries to retrieve the color of the title bar. Falls back to black if it fails.
+        /// </summary>
         public System.Drawing.Color TryGetTitleBarColor()
         {
             UpdateWidgetPointer();
