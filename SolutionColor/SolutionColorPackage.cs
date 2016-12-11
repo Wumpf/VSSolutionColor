@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
-using EnvDTE;
 
 namespace SolutionColor
 {
@@ -39,20 +38,42 @@ namespace SolutionColor
 
         public TitleBarColorController TitleBarColorControl { get; private set; }
 
+
         /// <summary>
-        /// Need to keep them alive!
+        /// Listener to opened solutions. Sets title bar color settings in effect if any.
         /// </summary>
-        private SolutionEvents solutionEvents;
+        private class SolutionOpenListener : SolutionListener
+        {
+            private SolutionColorPackage package;
+
+            public SolutionOpenListener(SolutionColorPackage package) : base(package)
+            {
+                this.package = package;
+            }
+
+            /// <summary>
+            /// IVsSolutionEvents3.OnAfterOpenSolution is called BEFORE a solution is fully loaded.
+            /// This is different from EnvDTE.Events.SolutionEvents.Opened which is loaded after a resolution was loaded due to historical reasons:
+            /// In earlier Visual Studio versions there was no asynchronous loading, so a solution was either fully loaded or not at all.
+            /// </summary>
+            public override int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+            {
+                // Check if we already saved something for this solution.
+                System.Drawing.Color color;
+                if (package.Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out color))
+                    package.TitleBarColorControl.SetTitleBarColor(color);
+                return 0;
+            }
+        }
+
+        private SolutionListener listener;
+        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PickColorCommand"/> class.
         /// </summary>
         public SolutionColorPackage()
         {
-            // Inside this method you can place any initialization code that does not require
-            // any Visual Studio service because at this point the package object is created but
-            // not sited yet inside Visual Studio environment. The place to do all the other
-            // initialization is the Initialize method.
         }
 
         #region Package Members
@@ -67,18 +88,16 @@ namespace SolutionColor
             PickColorCommand.Initialize(this);
             ResetColorCommand.Initialize(this);
 
-            solutionEvents = VSUtils.GetDTE().Events.SolutionEvents;
-            solutionEvents.Opened += SolutionOpened;
+            listener = new SolutionOpenListener(this);
 
             base.Initialize();
         }
 
-        private void SolutionOpened()
+        protected override void Dispose(bool disposing)
         {
-            // Check if we already saved something for this solution.
-            System.Drawing.Color color;
-            if (Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out color))
-                TitleBarColorControl.SetTitleBarColor(color);
+            if (disposing)
+                listener.Dispose();
+            base.Dispose(disposing);
         }
 
         #endregion
