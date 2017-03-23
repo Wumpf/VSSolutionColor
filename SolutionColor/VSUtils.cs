@@ -3,7 +3,7 @@
 namespace SolutionColor
 {
     /// <summary>
-    /// A few VS extension utils. Basically shortcuts to commonly functionallity.
+    /// A few VS extension utils. Basically shortcuts to commonly functionality.
     /// </summary>
     internal static class VSUtils
     {

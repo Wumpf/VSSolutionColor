@@ -8,7 +8,7 @@ namespace SolutionColor
     /// Abstract listener for solution events.
     /// This is much more powerful than EnvDTE.Events.SolutionEvents!
     /// 
-    /// More events, intenionally not implemented: IVsSolutionEvents4, IVsSolutionEvents, IVsSolutionEvents2
+    /// More events, intentionally not implemented: IVsSolutionEvents4, IVsSolutionEvents, IVsSolutionEvents2
     /// </summary>
     abstract public class SolutionListener : IVsSolutionEvents3, IDisposable
     {

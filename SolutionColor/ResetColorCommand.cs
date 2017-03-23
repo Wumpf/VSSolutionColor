@@ -55,7 +55,7 @@ namespace SolutionColor
 
         private void Execute(object sender, EventArgs e)
         {
-            package.TitleBarColorControl.ResetTitleBarColor();
+            package.ResetTitleBarColor();
             package.Settings.RemoveSolutionColorSetting(VSUtils.GetCurrentSolutionPath());
         }
     }

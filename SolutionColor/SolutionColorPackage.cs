@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Windows;
+using System.Windows.Automation;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
+using System.Collections.Generic;
+using System.Windows.Interop;
+using System.Linq;
 
 namespace SolutionColor
 {
@@ -36,7 +41,18 @@ namespace SolutionColor
 
         public SolutionColorSettingStore Settings { get; private set; } = new SolutionColorSettingStore();
 
-        public TitleBarColorController TitleBarColorControl { get; private set; }
+
+        /// <summary>
+        /// Store process id, since we use this on a very regular basis (whenever any windows opens anywhere...) and we don't want to do GetCurrentProcess every time.
+        /// </summary>
+        private readonly int currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
+
+        private Dictionary<Window, TitleBarColorController> windowTitleBarController = new Dictionary<Window, TitleBarColorController>();
+
+        /// <summary>
+        /// Currently scheduled call to UpdateTitleBarControllerList
+        /// </summary>
+        private System.Windows.Threading.DispatcherOperation scheduledUpdateControllerOperation = null;
 
 
         /// <summary>
@@ -61,13 +77,13 @@ namespace SolutionColor
                 // Check if we already saved something for this solution.
                 System.Drawing.Color color;
                 if (package.Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out color))
-                    package.TitleBarColorControl.SetTitleBarColor(color);
+                    package.SetTitleBarColor(color);
+
                 return 0;
             }
         }
 
         private SolutionListener listener;
-        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PickColorCommand"/> class.
@@ -76,7 +92,6 @@ namespace SolutionColor
         {
         }
 
-        #region Package Members
 
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
@@ -84,13 +99,31 @@ namespace SolutionColor
         /// </summary>
         protected override void Initialize()
         {
-            TitleBarColorControl = new TitleBarColorController();
+            base.Initialize();
+
             PickColorCommand.Initialize(this);
             ResetColorCommand.Initialize(this);
 
             listener = new SolutionOpenListener(this);
 
-            base.Initialize();
+            UpdateTitleBarControllerList();
+
+            // Window events won't give us events for undocking so we can't use that.
+            //var dte = VSUtils.GetDTE();
+            //windowEvents = dte.Events.WindowEvents;
+            //windowEvents.WindowCreated += (Window) => CheckForNewController();
+            //windowEvents.WindowClosing += (Window) => CheckForNewController();
+
+            // Instead we're using a bigger gun: The Automation framework!
+            // Sadly, it is not enough to listen to child windows of VS since code window popups are direct children of the desktop in terms of UI.
+            Automation.AddAutomationEventHandler(WindowPattern.WindowOpenedEvent, AutomationElement.RootElement, TreeScope.Children, OnWindowOpenedClosed);
+            // Weirdly, this doesn't apply to ALL child windows, and some are children of the main window after all. (Repro: Create a window out of two non-code views)
+            var windowHandle = new WindowInteropHelper(Application.Current.MainWindow).Handle;
+            var windowAutomationElement = AutomationElement.FromHandle(windowHandle);
+            Automation.AddAutomationEventHandler(WindowPattern.WindowOpenedEvent, windowAutomationElement, TreeScope.Subtree, OnWindowOpenedClosed);
+
+            // Cant use TreeScope.Children on WindowClosedEvent.
+            Automation.AddAutomationEventHandler(WindowPattern.WindowClosedEvent, AutomationElement.RootElement, TreeScope.Subtree, OnWindowOpenedClosed);
         }
 
         protected override void Dispose(bool disposing)
@@ -98,6 +131,73 @@ namespace SolutionColor
             if (disposing)
                 listener.Dispose();
             base.Dispose(disposing);
+        }
+
+        private void OnWindowOpenedClosed(object sender, AutomationEventArgs args)
+        {
+            // Ignore if different process.
+            var element = sender as AutomationElement;
+            if (element == null || element.Current.ProcessId != currentProcessId)
+                return;
+
+            // Since we're scheduling to the main thread which should be the only window creating thread, this should be thread safe.
+            // (if not, it wouldn't be too tragic - as long as we don't spam the scheduler with more updates than necessary we're fine)
+            if (scheduledUpdateControllerOperation == null || scheduledUpdateControllerOperation.Status == System.Windows.Threading.DispatcherOperationStatus.Completed)
+            {
+                scheduledUpdateControllerOperation = Application.Current.Dispatcher.InvokeAsync(UpdateTitleBarControllerList);
+            }
+        }
+
+        private void UpdateTitleBarControllerList()
+        {
+            Window[] windows = new Window[Application.Current.Windows.Count];
+            Application.Current.Windows.CopyTo(windows, 0);
+
+            // Destroy old ones.
+            windowTitleBarController = windowTitleBarController.Where(x => windows.Contains(x.Key))
+                                                               .ToDictionary(x=>x.Key, x=>x.Value);
+
+            // Look for new ones to add.
+            foreach (Window window in windows)
+            {
+                if (windowTitleBarController.ContainsKey(window))
+                    continue;
+
+                var newController = TitleBarColorController.CreateFromWindow(window);
+                if (newController != null)
+                {
+                    windowTitleBarController.Add(window, newController);
+
+                    // Check if we already saved something for this solution.
+                    // Do this in here since we call UpdateTitleBarControllerList fairly regularly and in the most cases won't have any new controllers.
+                    System.Drawing.Color color;
+                    if (Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out color))
+                        newController.SetTitleBarColor(color);
+                }
+            }
+        }
+
+        #region Color Manipulation
+
+        public void SetTitleBarColor(System.Drawing.Color color)
+        {
+            foreach (var bar in windowTitleBarController)
+                bar.Value.SetTitleBarColor(color);
+        }
+
+        public void ResetTitleBarColor()
+        {
+            foreach(var bar in windowTitleBarController)
+                bar.Value.ResetTitleBarColor(); 
+        }
+
+        public System.Drawing.Color GetMainTitleBarColor()
+        {
+            TitleBarColorController titleBar;
+            if (windowTitleBarController.TryGetValue(Application.Current.MainWindow, out titleBar))
+                return titleBar.TryGetTitleBarColor();
+            else
+                return System.Drawing.Color.Black;
         }
 
         #endregion

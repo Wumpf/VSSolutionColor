@@ -10,46 +10,71 @@ namespace SolutionColor
     /// </summary>
     public class TitleBarColorController
     {
-        private DependencyObject titleBar = null;
+        private DependencyObject titleBarContainer = null;
         private TextBlock titleBarTextBox = null;
 
         private object defaultBackgroundValue = null;
         private const string ColorPropertyName = "Background";
         private System.Windows.Media.Brush defaultTextForeground = null;
 
-        public TitleBarColorController()
+        private TitleBarColorController()
         {
-            // Too early to gather widget pointers since window might not be up yet.
-            //UpdateWidgetPointer();
         }
 
         /// <summary>
         /// Uses knowledge of the VS window structure to retrieve pointers to the titlebar and its text element.
-        /// Don't call before the application window isn't up yet.
         /// </summary>
-        private void UpdateWidgetPointer()
+        static public TitleBarColorController CreateFromWindow(Window window)
         {
-            if (titleBar != null && titleBarTextBox != null)
-                return;
-
+            TitleBarColorController newController = new TitleBarColorController();
             try
             {
-                var mainWindow = Application.Current.MainWindow;
+                // Apply knowledge of basic Visual Studio 2015/2017 window structure.
 
-                // Apply knowledge of basic Visual Studio 2015 window structure.
-                var windowContentPresenter = VisualTreeHelper.GetChild(mainWindow, 0);
-                var rootGrid = VisualTreeHelper.GetChild(windowContentPresenter, 0);
+                if (window == Application.Current.MainWindow)
+                {
+                    var windowContentPresenter = VisualTreeHelper.GetChild(window, 0);
+                    var rootGrid = VisualTreeHelper.GetChild(windowContentPresenter, 0);
 
-                titleBar = VisualTreeHelper.GetChild(rootGrid, 0);
-                System.Reflection.PropertyInfo propertyInfo = titleBar.GetType().GetProperty(ColorPropertyName);
-                defaultBackgroundValue = propertyInfo.GetValue(titleBar);
+                    newController.titleBarContainer = VisualTreeHelper.GetChild(rootGrid, 0);
 
-                var dockPanel = VisualTreeHelper.GetChild(titleBar, 0);
+                    var dockPanel = VisualTreeHelper.GetChild(newController.titleBarContainer, 0);
+                    newController.titleBarTextBox = VisualTreeHelper.GetChild(dockPanel, 3) as TextBlock;
+                }
+                else
+                {
+                    var windowContentPresenter = VisualTreeHelper.GetChild(window, 0);
+                    var rootGrid = VisualTreeHelper.GetChild(windowContentPresenter, 0);
+                    var rootDockPanel = VisualTreeHelper.GetChild(rootGrid, 0);
+                    var titleBarContainer = VisualTreeHelper.GetChild(rootDockPanel, 0);
+                    var titleBar = VisualTreeHelper.GetChild(titleBarContainer, 0);
+                    var border = VisualTreeHelper.GetChild(titleBar, 0);
+                    var contentPresenter = VisualTreeHelper.GetChild(border, 0);
+                    var grid = VisualTreeHelper.GetChild(contentPresenter, 0);
 
-                titleBarTextBox = VisualTreeHelper.GetChild(dockPanel, 3) as TextBlock;
-                defaultTextForeground = titleBarTextBox.Foreground;
+                    newController.titleBarContainer = grid;
+
+                    newController.titleBarTextBox = VisualTreeHelper.GetChild(grid, 1) as TextBlock;
+                }
+
+                if (newController.titleBarContainer != null)
+                {
+                    System.Reflection.PropertyInfo propertyInfo = newController.titleBarContainer.GetType().GetProperty(ColorPropertyName);
+                    newController.defaultBackgroundValue = propertyInfo.GetValue(newController.titleBarContainer);
+                }
+
+                if (newController.titleBarTextBox != null)
+                    newController.defaultTextForeground = newController.titleBarTextBox.Foreground;
             }
-            catch  { }
+            catch
+            {
+                return null;
+            }
+
+            if (newController.titleBarContainer == null || newController.titleBarTextBox == null)
+                return null;
+
+            return newController;
         }
 
         /// <summary>
@@ -58,14 +83,12 @@ namespace SolutionColor
         /// </summary>
         public void SetTitleBarColor(System.Drawing.Color color)
         {
-            UpdateWidgetPointer();
-
             try
             {
-                if (titleBar != null)
+                if (titleBarContainer != null)
                 {
-                    System.Reflection.PropertyInfo propertyInfo = titleBar.GetType().GetProperty(ColorPropertyName);
-                    propertyInfo.SetValue(titleBar, new SolidColorBrush(System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B)), null);
+                    System.Reflection.PropertyInfo propertyInfo = titleBarContainer.GetType().GetProperty(ColorPropertyName);
+                    propertyInfo.SetValue(titleBarContainer, new SolidColorBrush(System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B)), null);
                 }
 
                 if(titleBarTextBox != null)
@@ -88,15 +111,12 @@ namespace SolutionColor
         /// </summary>
         public void ResetTitleBarColor()
         {
-            // If we don't have the widget pointers yet, we also don't have a color to reset to.
-            //UpdateWidgetPointer();
-
             try
             {
-                if (titleBar != null)
+                if (titleBarContainer != null)
                 {
-                    System.Reflection.PropertyInfo propertyInfo = titleBar.GetType().GetProperty(ColorPropertyName);
-                    propertyInfo.SetValue(titleBar, defaultBackgroundValue, null);
+                    System.Reflection.PropertyInfo propertyInfo = titleBarContainer.GetType().GetProperty(ColorPropertyName);
+                    propertyInfo.SetValue(titleBarContainer, defaultBackgroundValue, null);
                 }
 
                 if (titleBarTextBox != null)
@@ -115,12 +135,10 @@ namespace SolutionColor
         /// </summary>
         public System.Drawing.Color TryGetTitleBarColor()
         {
-            UpdateWidgetPointer();
-
             try
             {
-                System.Reflection.PropertyInfo propertyInfo = titleBar.GetType().GetProperty(ColorPropertyName);
-                var colorBrush = propertyInfo.GetValue(titleBar) as SolidColorBrush;
+                System.Reflection.PropertyInfo propertyInfo = titleBarContainer.GetType().GetProperty(ColorPropertyName);
+                var colorBrush = propertyInfo.GetValue(titleBarContainer) as SolidColorBrush;
                 if (colorBrush != null)
                 {
                     return System.Drawing.Color.FromArgb(colorBrush.Color.A, colorBrush.Color.R, colorBrush.Color.G, colorBrush.Color.B);
