@@ -32,7 +32,7 @@
         <Parent guid= "SolutionColorCommandPackageCmdSet" id="ToolbarGroup" />
         <Icon guid="guidImages" id="bmpPickColor" />
         <Strings>
-          <ButtonText>Pick Color for the Current Solution.</ButtonText>
+          <ButtonText>Pick title bar color for the current solution.</ButtonText>
         </Strings>
       </Button>
 
@@ -40,7 +40,15 @@
         <Parent guid= "SolutionColorCommandPackageCmdSet" id="ToolbarGroup" />
         <Icon guid="guidImages" id="bmpResetColor" />
         <Strings>
-          <ButtonText>Reset Color for this Solution to Default.</ButtonText>
+          <ButtonText>Reset title bar color for the current solution to default.</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="SolutionColorCommandPackageCmdSet" id="AutoPickColorButtonId" priority="0x0102" type="Button">
+        <Parent guid= "SolutionColorCommandPackageCmdSet" id="ToolbarGroup" />
+        <Icon guid="guidImages" id="bmpAutoPickColor" />
+        <Strings>
+          <ButtonText>Enable automatic title bar color picking for new solutions.</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -52,7 +60,7 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\toolbarIcons.png" usedList="bmpPickColor, bmpResetColor"/>
+      <Bitmap guid="guidImages" href="Resources\toolbarIcons.png" usedList="bmpPickColor, bmpResetColor, bmpAutoPickColor"/>
     </Bitmaps>
   </Commands>
 
@@ -67,11 +75,13 @@
       <IDSymbol name="ToolbarGroup" value="0x1050" />
       <IDSymbol name="PickColorButtonId" value="0x0100" />
       <IDSymbol name="ResetColorButtonId" value="0x0101" />
+      <IDSymbol name="AutoPickColorButtonId" value="0x0102" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{54695ca7-8391-4376-99cf-e32094535e79}" >
       <IDSymbol name="bmpPickColor" value="1" />
       <IDSymbol name="bmpResetColor" value="2" />
+      <IDSymbol name="bmpAutoPickColor" value="3" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

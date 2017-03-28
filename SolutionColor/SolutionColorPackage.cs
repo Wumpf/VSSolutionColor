@@ -75,9 +75,16 @@ namespace SolutionColor
             public override int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
                 // Check if we already saved something for this solution.
+                string solutionPath = VSUtils.GetCurrentSolutionPath();
                 System.Drawing.Color color;
-                if (package.Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out color))
+                if (package.Settings.GetSolutionColorSetting(solutionPath, out color))
                     package.SetTitleBarColor(color);
+                else if (package.Settings.IsAutomaticColorPickEnabled())
+                {
+                    color = RandomColorGenerator.RandomColor.GetColor(RandomColorGenerator.ColorScheme.Random, VSUtils.IsUsingDarkTheme() ? RandomColorGenerator.Luminosity.Dark : RandomColorGenerator.Luminosity.Light);
+                    package.SetTitleBarColor(color);
+                    package.Settings.SaveOrOverwriteSolutionColor(solutionPath, color);
+                }
 
                 return 0;
             }
@@ -103,6 +110,7 @@ namespace SolutionColor
 
             PickColorCommand.Initialize(this);
             ResetColorCommand.Initialize(this);
+            EnableAutoPickColorCommand.Initialize(this);
 
             listener = new SolutionOpenListener(this);
 

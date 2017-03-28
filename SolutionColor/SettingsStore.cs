@@ -8,9 +8,25 @@ namespace SolutionColor
     public class SolutionColorSettingStore
     {
         private const string CollectionName = "SolutionColorSettings";
+        private const string AutomaticColorPickIdentifier = "AutomaticColorPick";
 
         public SolutionColorSettingStore()
         {
+        }
+
+        public bool IsAutomaticColorPickEnabled()
+        {
+            var settingsStore = GetSettingsStore();
+            if (settingsStore.PropertyExists(CollectionName, AutomaticColorPickIdentifier))
+                return settingsStore.GetBoolean(CollectionName, AutomaticColorPickIdentifier);
+            else
+                return false; // off by default.
+        }
+
+        public void SetAutomaticColorPickEnabled(bool enabled)
+        {
+            var settingsStore = GetSettingsStore();
+            settingsStore.SetBoolean(CollectionName, AutomaticColorPickIdentifier, enabled);
         }
 
         public void SaveOrOverwriteSolutionColor(string solutionPath, System.Drawing.Color color)
@@ -34,6 +50,12 @@ namespace SolutionColor
                 settingsStore.DeleteProperty(CollectionName, solutionPath);
         }
 
+        /// <summary>
+        /// Retrieves the color setting for a given solution.
+        /// </summary>
+        /// <param name="solutionPath">Path for the solution to check.</param>
+        /// <param name="color">Color we saved for the solution</param>
+        /// <returns>true if there was a color saved, false if not.</returns>
         public bool GetSolutionColorSetting(string solutionPath, out System.Drawing.Color color)
         {
             color = System.Drawing.Color.Black;
