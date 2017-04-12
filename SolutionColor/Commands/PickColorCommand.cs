@@ -59,12 +59,15 @@ namespace SolutionColor
             var dialog = new ColorDialog();
             dialog.AllowFullOpen = true;
             dialog.Color = package.GetMainTitleBarColor();
+            dialog.CustomColors = package.Settings.GetCustomColorList();
 
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 package.SetTitleBarColor(dialog.Color);
                 package.Settings.SaveOrOverwriteSolutionColor(VSUtils.GetCurrentSolutionPath(), dialog.Color);
             }
+
+            package.Settings.SaveCustomColorList(dialog.CustomColors);
         }
     }
 }

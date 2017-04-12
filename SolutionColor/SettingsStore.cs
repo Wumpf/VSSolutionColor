@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 using System.IO;
+using System.Linq;
 
 namespace SolutionColor
 {
@@ -72,6 +73,40 @@ namespace SolutionColor
             }
             else
                 return false;
+        }
+
+
+        private const string CustomColorPaletteName = "CustomColorPalette";
+
+        public int[] GetCustomColorList()
+        {
+            var settingsStore = GetSettingsStore();
+            if (settingsStore.PropertyExists(CollectionName, CustomColorPaletteName))
+            {
+                string customColorPaletteString = settingsStore.GetString(CollectionName, CustomColorPaletteName);
+                return customColorPaletteString.Split(new char[]{ ' ' }, System.StringSplitOptions.RemoveEmptyEntries).Select(x =>
+                {
+                    // Can't be cautious enough when reading user string.
+                    int color = -1;
+                    if (!int.TryParse(x, out color))
+                        return -1;
+                    else
+                        return color;
+                }).ToArray();
+            }
+            else
+            {
+                return new int[0];
+            }
+        }
+
+        public void SaveCustomColorList(int[] colorList)
+        {
+            // Save as string since it is easy and save.
+            // Alternative would be memorystream like we do with the color per solution path.
+            // Then however, we'd need to save the count separately [...]
+            var settingsStore = GetSettingsStore();
+            settingsStore.SetString(CollectionName, CustomColorPaletteName, colorList.Aggregate(string.Empty, (s, i) => s + " " + i.ToString()));
         }
 
         private WritableSettingsStore GetSettingsStore()
