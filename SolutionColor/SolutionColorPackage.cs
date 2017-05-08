@@ -88,6 +88,12 @@ namespace SolutionColor
 
                 return 0;
             }
+
+            public override int OnAfterCloseSolution(object pUnkReserved)
+            {
+                package.ResetTitleBarColor();
+                return 0;
+            }
         }
 
         private SolutionListener listener;
