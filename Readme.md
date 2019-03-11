@@ -1,4 +1,5 @@
 # SolutionColor
+
 Small Visual Studio extension that allows to choose a different title bar color for each solution. Useful if you often work with multiple Visual Studio instances simultaneously.
 
 ![Screenshot](SolutionColor/screenshot.png?raw=true)
