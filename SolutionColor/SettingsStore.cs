@@ -17,6 +17,8 @@ namespace SolutionColor
 
         public bool IsAutomaticColorPickEnabled()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var settingsStore = GetSettingsStore();
             if (settingsStore.PropertyExists(CollectionName, AutomaticColorPickIdentifier))
                 return settingsStore.GetBoolean(CollectionName, AutomaticColorPickIdentifier);
@@ -26,12 +28,16 @@ namespace SolutionColor
 
         public void SetAutomaticColorPickEnabled(bool enabled)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var settingsStore = GetSettingsStore();
             settingsStore.SetBoolean(CollectionName, AutomaticColorPickIdentifier, enabled);
         }
 
         public void SaveOrOverwriteSolutionColor(string solutionPath, System.Drawing.Color color)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (string.IsNullOrEmpty(solutionPath)) return;
             solutionPath = Path.GetFullPath(solutionPath);
 
@@ -43,6 +49,8 @@ namespace SolutionColor
 
         public void RemoveSolutionColorSetting(string solutionPath)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (string.IsNullOrEmpty(solutionPath)) return;
             solutionPath = Path.GetFullPath(solutionPath);
 
@@ -59,6 +67,8 @@ namespace SolutionColor
         /// <returns>true if there was a color saved, false if not.</returns>
         public bool GetSolutionColorSetting(string solutionPath, out System.Drawing.Color color)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             color = System.Drawing.Color.Black;
 
             if (string.IsNullOrEmpty(solutionPath)) return false;
@@ -80,6 +90,8 @@ namespace SolutionColor
 
         public int[] GetCustomColorList()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var settingsStore = GetSettingsStore();
             if (settingsStore.PropertyExists(CollectionName, CustomColorPaletteName))
             {
@@ -102,6 +114,8 @@ namespace SolutionColor
 
         public void SaveCustomColorList(int[] colorList)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             // Save as string since it is easy and save.
             // Alternative would be memorystream like we do with the color per solution path.
             // Then however, we'd need to save the count separately [...]
@@ -111,6 +125,7 @@ namespace SolutionColor
 
         private WritableSettingsStore GetSettingsStore()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
             WritableSettingsStore settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 

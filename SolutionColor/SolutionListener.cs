@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 
@@ -18,6 +19,8 @@ namespace SolutionColor
 
         protected SolutionListener(IServiceProvider serviceProvider)
         {
+            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+
             solutionService = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
             if (solutionService == null)
             {
@@ -29,12 +32,15 @@ namespace SolutionColor
 
         public void Dispose()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (!isDisposed)
             {
                 if (disposing && solutionService != null && eventsCookie != (uint)Constants.VSCOOKIE_NIL)

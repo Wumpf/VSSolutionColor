@@ -56,6 +56,8 @@ namespace SolutionColor
 
         private void Execute(object sender, EventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var dialog = new ColorDialog();
             dialog.AllowFullOpen = true;
             dialog.Color = package.GetMainTitleBarColor();
