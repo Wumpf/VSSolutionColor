@@ -21,6 +21,8 @@ namespace SolutionColor
         /// <param name="package">Owner package, not null.</param>
         private EnableAutoPickColorCommand(SolutionColorPackage package)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             this.package = package;
             if (package == null)
             {
@@ -58,6 +60,7 @@ namespace SolutionColor
 
         private void Execute(object sender, EventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             menuItem.Checked = !menuItem.Checked;
             package.Settings.SetAutomaticColorPickEnabled(menuItem.Checked);
         }

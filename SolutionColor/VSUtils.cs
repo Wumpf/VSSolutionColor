@@ -19,6 +19,7 @@ namespace SolutionColor
 
         public static string GetCurrentSolutionPath()
         {
+            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
             return GetDTE().Solution.FileName;
         }
 

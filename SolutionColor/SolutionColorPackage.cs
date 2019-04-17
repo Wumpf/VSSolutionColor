@@ -7,6 +7,9 @@ using Microsoft.VisualStudio.Shell;
 using System.Collections.Generic;
 using System.Windows.Interop;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 
 namespace SolutionColor
 {
@@ -27,13 +30,13 @@ namespace SolutionColor
     /// To get loaded into VS, the package must be referred by &lt;Asset Type="Microsoft.VisualStudio.VsPackage" ...&gt; in .vsixmanifest file.
     /// </para>
     /// </remarks>
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(SolutionColorPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    [ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.NoSolution_string)]
-    public sealed class SolutionColorPackage : Package
+    [ProvideAutoLoad(Microsoft.VisualStudio.VSConstants.UICONTEXT.NoSolution_string, PackageAutoLoadFlags.BackgroundLoad)]
+    public sealed class SolutionColorPackage : AsyncPackage
     {
         public const string PackageGuidString = "8fa74b3d-8744-465c-b06e-a719e1d63ddf";
 
@@ -52,7 +55,7 @@ namespace SolutionColor
         /// <summary>
         /// Currently scheduled call to UpdateTitleBarControllerList
         /// </summary>
-        private System.Windows.Threading.DispatcherOperation scheduledUpdateControllerOperation = null;
+        private Task scheduledUpdateControllerOperation = null;
 
 
         /// <summary>
@@ -74,6 +77,8 @@ namespace SolutionColor
             /// </summary>
             public override int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
             {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
                 // Check if we already saved something for this solution.
                 string solutionPath = VSUtils.GetCurrentSolutionPath();
                 System.Drawing.Color color;
@@ -98,29 +103,18 @@ namespace SolutionColor
 
         private SolutionListener listener;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PickColorCommand"/> class.
-        /// </summary>
-        public SolutionColorPackage()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-        }
+            await base.InitializeAsync(cancellationToken, progress);
 
-
-        /// <summary>
-        /// Initialization of the package; this method is called right after the package is sited, so this is the place
-        /// where you can put all the initialization code that rely on services provided by VisualStudio.
-        /// </summary>
-        protected override void Initialize()
-        {
-            base.Initialize();
-
+            await JoinableTaskFactory.SwitchToMainThreadAsync();    // Command constructors need to be on main thread.
             PickColorCommand.Initialize(this);
             ResetColorCommand.Initialize(this);
             EnableAutoPickColorCommand.Initialize(this);
 
             listener = new SolutionOpenListener(this);
 
-            UpdateTitleBarControllerList();
+            await UpdateTitleBarControllerListAsync();
 
             // Window events won't give us events for undocking so we can't use that.
             //var dte = VSUtils.GetDTE();
@@ -142,6 +136,7 @@ namespace SolutionColor
 
         protected override void Dispose(bool disposing)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             if (disposing)
                 listener.Dispose();
             base.Dispose(disposing);
@@ -156,14 +151,16 @@ namespace SolutionColor
 
             // Since we're scheduling to the main thread which should be the only window creating thread, this should be thread safe.
             // (if not, it wouldn't be too tragic - as long as we don't spam the scheduler with more updates than necessary we're fine)
-            if (scheduledUpdateControllerOperation == null || scheduledUpdateControllerOperation.Status == System.Windows.Threading.DispatcherOperationStatus.Completed)
+            if (scheduledUpdateControllerOperation == null || scheduledUpdateControllerOperation.IsCompleted)
             {
-                scheduledUpdateControllerOperation = Application.Current.Dispatcher.InvokeAsync(UpdateTitleBarControllerList);
+                scheduledUpdateControllerOperation = UpdateTitleBarControllerListAsync();
             }
         }
 
-        private void UpdateTitleBarControllerList()
+        private async Task UpdateTitleBarControllerListAsync()
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
             Window[] windows = new Window[Application.Current.Windows.Count];
             Application.Current.Windows.CopyTo(windows, 0);
 
