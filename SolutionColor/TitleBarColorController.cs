@@ -29,7 +29,7 @@ namespace SolutionColor
             TitleBarColorController newController = new TitleBarColorController();
             try
             {
-                // Apply knowledge of basic Visual Studio 2015/2017 window structure.
+                // Apply knowledge of basic Visual Studio 2015/2017/2019 window structure.
 
                 if (window == Application.Current.MainWindow)
                 {
@@ -38,6 +38,8 @@ namespace SolutionColor
 
                     newController.titleBarContainer = VisualTreeHelper.GetChild(rootGrid, 0);
 
+                    // Note that this part doesn't work for the VS2019 main windows as there is simply no title text like this.
+                    // However docked-out code windows are just like in previous versions.
                     var dockPanel = VisualTreeHelper.GetChild(newController.titleBarContainer, 0);
                     newController.titleBarTextBox = VisualTreeHelper.GetChild(dockPanel, 3) as TextBlock;
                 }
@@ -71,7 +73,7 @@ namespace SolutionColor
                 return null;
             }
 
-            if (newController.titleBarContainer == null || newController.titleBarTextBox == null)
+            if (newController.titleBarContainer == null)
                 return null;
 
             return newController;
@@ -91,7 +93,7 @@ namespace SolutionColor
                     propertyInfo.SetValue(titleBarContainer, new SolidColorBrush(System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B)), null);
                 }
 
-                if(titleBarTextBox != null)
+                if (titleBarTextBox != null)
                 {
                     float luminance = 0.299f * color.R + 0.587f * color.G + 0.114f * color.B;
                     if(luminance > 128.0f)
