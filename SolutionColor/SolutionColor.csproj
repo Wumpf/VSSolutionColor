@@ -78,7 +78,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="license.txt">
+    <Content Include="..\LICENSE">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\icon.png">
