@@ -215,16 +215,11 @@ namespace SolutionColor
         /// <returns></returns>
         private Style CreateNewMenuItemStyle(DependencyObject menuItemWrapper, SolidColorBrush newTextBrush)
         {
-            if ((menuItemWrapper == null) || (VisualTreeHelper.GetChildrenCount(menuItemWrapper) == 0))
+            if (defaultMenuItemStyle == null)
                 return null;
 
-            var menuItem = VisualTreeHelper.GetChild(menuItemWrapper, 0) as MenuItem;
-
-            if (menuItem == null)
-                return null;
-
-            var newStyle = new Style(menuItem.Style.TargetType, menuItem.Style);
-            foreach (var setter in menuItem.Style.Setters)
+            var newStyle = new Style(defaultMenuItemStyle.TargetType, defaultMenuItemStyle);
+            foreach (var setter in defaultMenuItemStyle.Setters)
             {
                 if ((setter is Setter) && ((setter as Setter).Property.ToString() == ForegroundPropertyName))
                 {
