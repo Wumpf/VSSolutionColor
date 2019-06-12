@@ -242,6 +242,9 @@ namespace SolutionColor
         /// <param name="styleToApply">The new style to apply to all children</param>
         private void ApplyStyleOnAllChildren(DependencyObject menuItemWrapper, Style styleToApply)
         {
+            if (menuItemWrapper == null)
+                throw new ArgumentNullException(nameof(menuItemWrapper));
+
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(menuItemWrapper); i++)
             {
                 var menuItem = VisualTreeHelper.GetChild(menuItemWrapper, i) as MenuItem;
