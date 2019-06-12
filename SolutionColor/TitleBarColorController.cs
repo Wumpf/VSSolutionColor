@@ -85,7 +85,7 @@ namespace SolutionColor
                 {
                     System.Reflection.PropertyInfo propertyInfo = newController.mainMenuControl.GetType().GetProperty(ColorPropertyName);
                     newController.defaultMenuBackgroundValue = propertyInfo.GetValue(newController.mainMenuControl);
-                    var firstMenuItem = newController.mainMenuItemsWrapperControl == null ? null : VisualTreeHelper.GetChild(newController.mainMenuItemsWrapperControl, 0) as MenuItem;
+                    var firstMenuItem = (newController.mainMenuItemsWrapperControl == null) || (VisualTreeHelper.GetChildrenCount(newController.mainMenuItemsWrapperControl) < 1) ? null : VisualTreeHelper.GetChild(newController.mainMenuItemsWrapperControl, 0) as MenuItem;
                     if (firstMenuItem != null)
                     {
                         newController.defaultMenuItemStyle = firstMenuItem.Style;
