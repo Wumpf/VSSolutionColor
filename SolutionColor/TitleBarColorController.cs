@@ -261,6 +261,8 @@ namespace SolutionColor
         {
             while ((reference != null) && (levelsDeep > 0))
             {
+                if (VisualTreeHelper.GetChildrenCount(reference) < 1)
+                    return null;
                 reference = VisualTreeHelper.GetChild(reference, 0);
                 levelsDeep--;
             }
