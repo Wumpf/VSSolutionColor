@@ -11,11 +11,16 @@ namespace SolutionColor
     public class TitleBarColorController
     {
         private DependencyObject titleBarContainer = null;
+        private DependencyObject mainMenuControl = null;
+        private DependencyObject mainMenuItemsWrapperControl = null;
         private TextBlock titleBarTextBox = null;
 
         private object defaultBackgroundValue = null;
+        private Brush defaultTextForeground = null;
+        private object defaultMenuBackgroundValue = null;
+        private Style defaultMenuItemStyle = null;
         private const string ColorPropertyName = "Background";
-        private System.Windows.Media.Brush defaultTextForeground = null;
+        private const string ForegroundPropertyName = "Foreground";
 
         private TitleBarColorController()
         {
@@ -42,6 +47,14 @@ namespace SolutionColor
                     // However docked-out code windows are just like in previous versions.
                     var dockPanel = VisualTreeHelper.GetChild(newController.titleBarContainer, 0);
                     newController.titleBarTextBox = VisualTreeHelper.GetChild(dockPanel, 3) as TextBlock;
+
+                    // In VS2019+ the main menu has been integrated with the title bar.
+                    // We can set the opacity to 0 and color the text as we did/do with the title text.
+                    newController.mainMenuControl = GetDecendantFirstInLine(newController.titleBarContainer, 6);
+                    if (newController.mainMenuControl != null)
+                    {
+                        newController.mainMenuItemsWrapperControl = GetDecendantFirstInLine(newController.mainMenuControl, 3);
+                    }
                 }
                 else
                 {
@@ -67,6 +80,18 @@ namespace SolutionColor
 
                 if (newController.titleBarTextBox != null)
                     newController.defaultTextForeground = newController.titleBarTextBox.Foreground;
+
+                if (newController.mainMenuControl != null)
+                {
+                    System.Reflection.PropertyInfo propertyInfo = newController.mainMenuControl.GetType().GetProperty(ColorPropertyName);
+                    newController.defaultMenuBackgroundValue = propertyInfo.GetValue(newController.mainMenuControl);
+                    var firstMenuItem = (newController.mainMenuItemsWrapperControl == null) || (VisualTreeHelper.GetChildrenCount(newController.mainMenuItemsWrapperControl) < 1) ? null : VisualTreeHelper.GetChild(newController.mainMenuItemsWrapperControl, 0) as MenuItem;
+                    if (firstMenuItem != null)
+                    {
+                        newController.defaultMenuItemStyle = firstMenuItem.Style;
+                    }
+                }
+
             }
             catch
             {
@@ -87,22 +112,37 @@ namespace SolutionColor
         {
             try
             {
+                float luminance = 0.299f * color.R + 0.587f * color.G + 0.114f * color.B;
+                var textColor = (luminance > 128.0f) ? Color.FromRgb(0, 0, 0) : Color.FromRgb(255, 255, 255);
+                var textBrush = new SolidColorBrush(textColor);
+
                 if (titleBarContainer != null)
                 {
                     System.Reflection.PropertyInfo propertyInfo = titleBarContainer.GetType().GetProperty(ColorPropertyName);
-                    propertyInfo.SetValue(titleBarContainer, new SolidColorBrush(System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B)), null);
+                    propertyInfo.SetValue(titleBarContainer, new SolidColorBrush(Color.FromArgb(color.A, color.R, color.G, color.B)), null);
                 }
 
                 if (titleBarTextBox != null)
                 {
-                    float luminance = 0.299f * color.R + 0.587f * color.G + 0.114f * color.B;
-                    if(luminance > 128.0f)
-                        titleBarTextBox.Foreground = new SolidColorBrush(Color.FromRgb(0,0,0));
-                    else
-                        titleBarTextBox.Foreground = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+                    titleBarTextBox.Foreground = textBrush;
+                }
+
+                if (mainMenuControl != null)
+                {
+                    System.Reflection.PropertyInfo propertyInfo = mainMenuControl.GetType().GetProperty(ColorPropertyName);
+                    propertyInfo.SetValue(mainMenuControl, new SolidColorBrush(Colors.Transparent));
+                }
+
+                if (mainMenuItemsWrapperControl != null)
+                {
+                    var newMenuItemStyle = CreateNewMenuItemStyle(mainMenuItemsWrapperControl, textBrush);
+                    if (newMenuItemStyle != null)
+                    {
+                        ApplyStyleOnAllChildren(mainMenuItemsWrapperControl, newMenuItemStyle);
+                    }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 MessageBox.Show("Failed to set the color of the title bar:\n" + e.ToString(), "Failed to set Titlebar Color");
             }
@@ -124,6 +164,17 @@ namespace SolutionColor
                 if (titleBarTextBox != null)
                 {
                     titleBarTextBox.Foreground = defaultTextForeground;
+                }
+
+                if (mainMenuControl != null)
+                {
+                    System.Reflection.PropertyInfo propertyInfo = mainMenuControl.GetType().GetProperty(ColorPropertyName);
+                    propertyInfo.SetValue(mainMenuControl, defaultMenuBackgroundValue);
+                }
+
+                if (mainMenuItemsWrapperControl != null)
+                {
+                    ApplyStyleOnAllChildren(mainMenuItemsWrapperControl, defaultMenuItemStyle);
                 }
             }
             catch (Exception e)
@@ -155,5 +206,66 @@ namespace SolutionColor
 
             return System.Drawing.Color.Black;
         }
+
+        /// <summary>
+        /// Creates a new Style with the supplied <paramref name="newTextBrush"/> based on the Style of the first Child object of <paramref name="menuItemWrapper"/>
+        /// </summary>
+        /// <param name="menuItemWrapper"></param>
+        /// <param name="newTextBrush"></param>
+        /// <returns></returns>
+        private Style CreateNewMenuItemStyle(DependencyObject menuItemWrapper, SolidColorBrush newTextBrush)
+        {
+            if (defaultMenuItemStyle == null)
+                return null;
+
+            var newStyle = new Style(defaultMenuItemStyle.TargetType, defaultMenuItemStyle);
+            foreach (var setter in defaultMenuItemStyle.Setters)
+            {
+                if ((setter is Setter) && ((setter as Setter).Property.ToString() == ForegroundPropertyName))
+                {
+                    newStyle.Setters.Remove(setter);
+                    newStyle.Setters.Add(new Setter((setter as Setter).Property, newTextBrush));
+                }
+            }
+            return newStyle;
+        }
+
+        /// <summary>
+        /// Applies the <paramref name="styleToApply"/> to all children of <paramref name="menuItemWrapper"/>
+        /// </summary>
+        /// <param name="menuItemWrapper">The object that has all the relevant MenuItems as children</param>
+        /// <param name="styleToApply">The new style to apply to all children</param>
+        private void ApplyStyleOnAllChildren(DependencyObject menuItemWrapper, Style styleToApply)
+        {
+            if (menuItemWrapper == null)
+                throw new ArgumentNullException(nameof(menuItemWrapper));
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(menuItemWrapper); i++)
+            {
+                var menuItem = VisualTreeHelper.GetChild(menuItemWrapper, i) as MenuItem;
+                if (menuItem != null)
+                {
+                    menuItem.Style = styleToApply;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Call VisualTreeHelper.GetChild(ref, 0) multiple times, to get a first-in-line decendant x levels deep.
+        /// </summary>
+        /// <param name="reference">The parent visual to get the decendant of</param>
+        /// <param name="levelsDeep">The amount of levels deep (if 1 is passed, this method behaves as GetChild).</param>
+        static private DependencyObject GetDecendantFirstInLine(DependencyObject reference, int levelsDeep)
+        {
+            while ((reference != null) && (levelsDeep > 0))
+            {
+                if (VisualTreeHelper.GetChildrenCount(reference) < 1)
+                    return null;
+                reference = VisualTreeHelper.GetChild(reference, 0);
+                levelsDeep--;
+            }
+            return reference;
+        }
+
     }
 }
