@@ -43,6 +43,7 @@ namespace SolutionColor
         public static readonly Guid ToolbarCommandSetGuid = new Guid("00d80876-3407-4666-bf62-7262028ea83b");
 
         public SolutionColorSettingStore Settings { get; private set; } = new SolutionColorSettingStore();
+        private EnvDTE.WindowEvents windowEvents;
 
 
         /// <summary>
@@ -51,12 +52,6 @@ namespace SolutionColor
         private readonly int currentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
 
         private Dictionary<Window, TitleBarColorController> windowTitleBarController = new Dictionary<Window, TitleBarColorController>();
-
-        /// <summary>
-        /// Currently scheduled call to UpdateTitleBarControllerList
-        /// </summary>
-        private Task scheduledUpdateControllerOperation = null;
-
 
         /// <summary>
         /// Listener to opened solutions. Sets title bar color settings in effect if any.
@@ -116,22 +111,13 @@ namespace SolutionColor
 
             await UpdateTitleBarControllerListAsync();
 
-            // Window events won't give us events for undocking so we can't use that.
-            //var dte = VSUtils.GetDTE();
-            //windowEvents = dte.Events.WindowEvents;
-            //windowEvents.WindowCreated += (Window) => CheckForNewController();
-            //windowEvents.WindowClosing += (Window) => CheckForNewController();
-
-            // Instead we're using a bigger gun: The Automation framework!
-            // Sadly, it is not enough to listen to child windows of VS since code window popups are direct children of the desktop in terms of UI.
-            Automation.AddAutomationEventHandler(WindowPattern.WindowOpenedEvent, AutomationElement.RootElement, TreeScope.Children, OnWindowOpenedClosed);
-            // Weirdly, this doesn't apply to ALL child windows, and some are children of the main window after all. (Repro: Create a window out of two non-code views)
-            var windowHandle = new WindowInteropHelper(Application.Current.MainWindow).Handle;
-            var windowAutomationElement = AutomationElement.FromHandle(windowHandle);
-            Automation.AddAutomationEventHandler(WindowPattern.WindowOpenedEvent, windowAutomationElement, TreeScope.Subtree, OnWindowOpenedClosed);
-
-            // Cant use TreeScope.Children on WindowClosedEvent.
-            Automation.AddAutomationEventHandler(WindowPattern.WindowClosedEvent, AutomationElement.RootElement, TreeScope.Subtree, OnWindowOpenedClosed);
+            // Use window event to find removed/added windows.
+            // TODO: Doesn't always reliably catch undocking events.
+            var dte = VSUtils.GetDTE();
+            windowEvents = dte.Events.WindowEvents;
+            windowEvents.WindowCreated += async (Window) => await UpdateTitleBarControllerListAsync();
+            windowEvents.WindowClosing += async (Window) => await UpdateTitleBarControllerListAsync();
+            windowEvents.WindowActivated += async (a, b) => await UpdateTitleBarControllerListAsync();
         }
 
         protected override void Dispose(bool disposing)
@@ -142,21 +128,6 @@ namespace SolutionColor
             base.Dispose(disposing);
         }
 
-        private void OnWindowOpenedClosed(object sender, AutomationEventArgs args)
-        {
-            // Ignore if different process.
-            var element = sender as AutomationElement;
-            if (element == null || element.Current.ProcessId != currentProcessId)
-                return;
-
-            // Since we're scheduling to the main thread which should be the only window creating thread, this should be thread safe.
-            // (if not, it wouldn't be too tragic - as long as we don't spam the scheduler with more updates than necessary we're fine)
-            if (scheduledUpdateControllerOperation == null || scheduledUpdateControllerOperation.IsCompleted)
-            {
-                scheduledUpdateControllerOperation = UpdateTitleBarControllerListAsync();
-            }
-        }
-
         private async Task UpdateTitleBarControllerListAsync()
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -164,16 +135,13 @@ namespace SolutionColor
             Window[] windows = new Window[Application.Current.Windows.Count];
             Application.Current.Windows.CopyTo(windows, 0);
 
-            // Destroy old ones.
+            // Destroy old window controller.
             windowTitleBarController = windowTitleBarController.Where(x => windows.Contains(x.Key))
                                                                .ToDictionary(x=>x.Key, x=>x.Value);
 
-            // Look for new ones to add.
-            foreach (Window window in windows)
+            // Go through new windows.
+            foreach (Window window in windows.Where(w => !windowTitleBarController.ContainsKey(w)))
             {
-                if (windowTitleBarController.ContainsKey(window))
-                    continue;
-
                 var newController = TitleBarColorController.CreateFromWindow(window);
                 if (newController != null)
                 {
@@ -181,8 +149,7 @@ namespace SolutionColor
 
                     // Check if we already saved something for this solution.
                     // Do this in here since we call UpdateTitleBarControllerList fairly regularly and in the most cases won't have any new controllers.
-                    System.Drawing.Color color;
-                    if (Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out color))
+                    if (Settings.GetSolutionColorSetting(VSUtils.GetCurrentSolutionPath(), out var color))
                         newController.SetTitleBarColor(color);
                 }
             }
