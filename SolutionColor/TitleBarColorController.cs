@@ -45,8 +45,15 @@ namespace SolutionColor
 
                     // Note that this part doesn't work for the VS2019 main windows as there is simply no title text like this.
                     // However docked-out code windows are just like in previous versions.
-                    var dockPanel = VisualTreeHelper.GetChild(newController.titleBarContainer, 0);
-                    newController.titleBarTextBox = VisualTreeHelper.GetChild(dockPanel, 3) as TextBlock;
+                    try
+                    {
+                        var dockPanel = VisualTreeHelper.GetChild(newController.titleBarContainer, 0);
+                        newController.titleBarTextBox = VisualTreeHelper.GetChild(dockPanel, 3) as TextBlock;
+                    }
+                    catch
+                    {
+                        // We can do without the text box!
+                    }
 
                     // In VS2019+ the main menu has been integrated with the title bar.
                     // We can set the opacity to 0 and color the text as we did/do with the title text.
@@ -54,6 +61,16 @@ namespace SolutionColor
                     if (newController.mainMenuControl != null)
                     {
                         newController.mainMenuItemsWrapperControl = GetDecendantFirstInLine(newController.mainMenuControl, 3);
+                        if (newController.mainMenuItemsWrapperControl is MenuItem) // Nestedness of the layout changed a bit over different versions;
+                            newController.mainMenuItemsWrapperControl = GetDecendantFirstInLine(newController.mainMenuControl, 2);
+
+                        System.Reflection.PropertyInfo propertyInfo = newController.mainMenuControl.GetType().GetProperty(ColorPropertyName);
+                        newController.defaultMenuBackgroundValue = propertyInfo.GetValue(newController.mainMenuControl);
+                        if (newController.mainMenuItemsWrapperControl != null && VisualTreeHelper.GetChildrenCount(newController.mainMenuItemsWrapperControl) > 0)
+                        {
+                            var child = VisualTreeHelper.GetChild(newController.mainMenuItemsWrapperControl, 0);
+                            newController.defaultMenuItemStyle = child.GetType().GetProperty("Style")?.GetValue(child) as Style;
+                        }
                     }
                 }
                 else
@@ -80,18 +97,6 @@ namespace SolutionColor
 
                 if (newController.titleBarTextBox != null)
                     newController.defaultTextForeground = newController.titleBarTextBox.Foreground;
-
-                if (newController.mainMenuControl != null)
-                {
-                    System.Reflection.PropertyInfo propertyInfo = newController.mainMenuControl.GetType().GetProperty(ColorPropertyName);
-                    newController.defaultMenuBackgroundValue = propertyInfo.GetValue(newController.mainMenuControl);
-                    var firstMenuItem = (newController.mainMenuItemsWrapperControl == null) || (VisualTreeHelper.GetChildrenCount(newController.mainMenuItemsWrapperControl) < 1) ? null : VisualTreeHelper.GetChild(newController.mainMenuItemsWrapperControl, 0) as MenuItem;
-                    if (firstMenuItem != null)
-                    {
-                        newController.defaultMenuItemStyle = firstMenuItem.Style;
-                    }
-                }
-
             }
             catch
             {
